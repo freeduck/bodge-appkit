@@ -179,9 +179,13 @@
       (push-action appkit #'update-framebuffer))))
 
 
+(ge.vg:defcanvas appkit-canvas (appkit-instance)
+  (draw appkit-instance))
+
+
 (defun %initialize-graphics (this pixel-ratio)
   (with-slots (viewport-width viewport-height canvas font ui input-source) this
-    (setf canvas (ge.vg:make-canvas viewport-width
+    (setf canvas (ge.vg:make-canvas 'appkit-canvas viewport-width
                                     viewport-height
                                     :pixel-ratio pixel-ratio
                                     :antialiased nil)
@@ -199,8 +203,7 @@
     (gl:viewport 0 0 (x framebuffer-size) (y framebuffer-size))
     (gl:clear :color-buffer :depth-buffer :stencil-buffer)
     (let ((*font* font))
-      (ge.vg:with-canvas (canvas)
-        (draw this))
+      (render t canvas :appkit-instance this)
       (ge.ui:compose-ui ui))
     (ge.host:swap-buffers)))
 
