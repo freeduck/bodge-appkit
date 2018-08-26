@@ -13,7 +13,6 @@
 (defvar *default-viewport-title* "Bodge Appkit")
 
 
-
 (defclass appkit-system (enableable generic-system)
   ((framebuffer-size :initform (vec2 640 480) :accessor %framebuffer-size-of)
    (viewport-width :initform *default-viewport-width*)
@@ -28,7 +27,15 @@
   (:default-initargs :depends-on '(ge.host:host-system ge.gx:graphics-system)))
 
 
-(defgeneric app-configuration-flow (appkit)
+(defgeneric %app-configuration-flow (appkit)
+  (:method ((this appkit-system)) (declare (ignore this))))
+
+
+(defgeneric configuration-flow (appkit)
+  (:method ((this appkit-system)) (declare (ignore this))))
+
+
+(defgeneric sweeping-flow (appkit)
   (:method ((this appkit-system)) (declare (ignore this))))
 
 
@@ -93,7 +100,8 @@
                            (or viewport-title *default-viewport-title*)
                            width height fullscreen-p))
         (ge.gx:for-graphics ()
-          (update-graphics app width height window-classes)))))
+          (update-graphics app width height window-classes))
+        (configuration-flow app))))
 
 
 (defmacro defapp (name (&rest classes) &body ((&rest slots) &rest opts))
@@ -108,7 +116,7 @@
                             (fullscreen-p :fullscreen-p)
                             (windows :windows))
             (alist-hash-table extended)
-          `(defmethod app-configuration-flow ((this ,name))
+          `(defmethod %app-configuration-flow ((this ,name))
              (%app-update-flow this
                                ,(first viewport-title)
                                ,(first viewport-width)
@@ -138,14 +146,6 @@
 
 
 (defgeneric initialize-user-interface (system)
-  (:method ((system appkit-system)) (declare (ignore system))))
-
-
-(defgeneric post-initialize (system)
-  (:method ((system appkit-system)) (declare (ignore system))))
-
-
-(defgeneric pre-destroy (system)
   (:method ((system appkit-system)) (declare (ignore system))))
 
 
@@ -203,7 +203,7 @@
     (gl:viewport 0 0 (x framebuffer-size) (y framebuffer-size))
     (gl:clear :color-buffer :depth-buffer :stencil-buffer)
     (let ((*font* font))
-      (render t canvas :appkit-instance this)
+      (ge.gx:render t canvas :appkit-instance this)
       (ge.ui:compose-ui ui))
     (ge.host:swap-buffers)))
 
@@ -216,7 +216,8 @@
       (loop-flow (>> (->> ()
                        (when updated-p
                          (setf updated-p nil)
-                         (app-configuration-flow this)))
+                         (>> (sweeping-flow this)
+                             (%app-configuration-flow this))))
                      (->> ()
                        (when injected-flows
                          (prog1 (nreverse injected-flows)
@@ -232,13 +233,10 @@
         (viewport-pixel-ratio))
       (ge.gx:for-graphics (pixel-ratio)
         (%initialize-graphics this pixel-ratio))
-      (app-configuration-flow this)
+      (%app-configuration-flow this)
       (instantly ()
-        (post-initialize this)
         (run (>> (%app-loop this)
-                 (instantly ()
-                   (pre-destroy this)))))))
-
+                 (->> () (sweeping-flow this)))))))
 
 ;;;
 ;;; Startup routines

@@ -6,10 +6,12 @@
 
            defapp
            appkit
-           act
-           draw
+
+           configuration-flow
+           sweeping-flow
            inject-flow
 
            initialize-user-interface
-           post-initialize
-           pre-destroy))
+
+           act
+           draw))
