@@ -250,12 +250,19 @@
            :blocking blocking))
 
 
-(defun stop ()
-  (unwind-protect
-       (shutdown)
-    (setf *appkit-instance-class* nil)))
+(defun %stop ()
+  (when *appkit-instance-class*
+    (unwind-protect
+         (shutdown)
+      (setf *appkit-instance-class* nil))))
+
+
+(defun stop (&key blocking)
+  (if blocking
+      (%stop)
+      (in-new-thread "exit-thread"
+        (%stop))))
 
 
 (define-event-handler on-exit ((ev ge.host:viewport-hiding-event))
-  (in-new-thread "exit-thread"
-    (stop)))
+  (%stop))
