@@ -260,7 +260,7 @@
 (defun stop (&key blocking)
   (if blocking
       (%stop)
-      (in-new-thread "exit-thread"
+      (in-new-thread ("exit-thread")
         (%stop))))
 
 

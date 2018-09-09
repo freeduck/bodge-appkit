@@ -1,6 +1,6 @@
 (cl:defpackage :bodge-appkit
   (:nicknames :appkit)
-  (:use :cl :cl-bodge.engine :cl-bodge.utils :cl-bodge.resources)
+  (:use :cl :cl-bodge.engine :bodge-util :cl-bodge.resources)
   (:export start
            stop
 
