@@ -84,9 +84,9 @@
     (ge.vg:update-canvas-size canvas viewport-width viewport-height)
     (ge.ui:update-ui-size ui viewport-width viewport-height)
     (ge.ui:with-ui-access (ui)
-      (ge.ui:remove-all-windows)
+      (ge.ui:remove-all-panels)
       (dolist (window-class window-classes)
-        (ge.ui:add-window window-class)))
+        (ge.ui:add-panel window-class)))
       (initialize-user-interface this)
     (ge.ui:compose-ui ui)))
 
